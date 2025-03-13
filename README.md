@@ -118,32 +118,41 @@ or in the init file
 
 ## Installation
 
-### ob-cobol
+### ob-cobol — Emacs 30 or newer
 
-Clone this repo to a folder on your desktop.
+```elisp
+(use-package ob-cobol
+  :vc (:url "https://github.com/Tekki/ob-cobol.git"
+       :rev :newest))
+```
+
+If you want to work in IBM dialect with fixed instead of free format,
+change the defaults.
+
+```elisp
+(use-package ob-cobol
+  :vc (:url "https://github.com/Tekki/ob-cobol.git"
+       :rev :newest)
+  :config
+  (setq ob-cobol-dialect "ibm"
+        ob-cobol-source-format "fixed"))
+```
+
+### ob-cobol — older Emacs versions
+
+Clone this repo to a local folder.
 
 ```bash
 cd ~/git
 git clone https://github.com/Tekki/ob-cobol
 ```
 
-This will download the code to `~/git/ob-cobol`. Then add it to your
-init file.
+This will download the code to `~/git/ob-cobol`. Then add this path to
+your init file.
 
 ```elisp
 (use-package ob-cobol
   :load-path "~/git/ob-cobol/")
-```
-
-If you want to work in IBM dialect with fixed instead of free format,
-change the default.
-
-```elisp
-(use-package ob-cobol
-  :load-path "~/git/ob-cobol/"
-  :config
-  (setq ob-cobol-dialect "ibm"
-        ob-cobol-source-format "fixed"))
 ```
 
 ### GnuCOBOL
