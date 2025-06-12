@@ -79,8 +79,17 @@ Overwrite in code block with parameter `:dialect'."
                  (const "rm-strict")
                  (const "xopen")))
 
-(defvar ob-cobol-compiler "cobc"
-  "Path to the COBOL compiler.")
+(defcustom ob-cobol-compiler 'cobc
+  "Compiler that should be used by ob-cobol."
+  :group 'org-babel
+  :type '(choice (const :tag "Use legacy cobc compiler." cobc)
+                 (const :tag "Use gcobol compiler introduced in gcc-15" gcobol)))
+
+(defvar ob-cobol-compiler-cobc "cobc"
+  "Path to the cobc COBOL compiler.")
+
+(defvar ob-cobol-compiler-gcobol "gcobol"
+  "Path to the gcobol COBOL compiler.")
 
 (defvar ob-cobol-last-src-file nil
   "The last compiled source file.")
@@ -135,6 +144,25 @@ Overwrite in code block with parameter `:dialect'."
 
     wrapped))
 
+(defun org-cobol--cobc-command (source-format dialect tmp-binary)
+  "Generate the build command for cobc."
+  (format "%s -%s -std=%s -x -o %s -j %s"
+          ob-cobol-compiler-cobc
+          source-format
+          dialect
+          tmp-binary
+          ob-cobol-last-src-file))
+
+(defun org-cobol--gcobol-command (source-format dialect tmp-binary)
+  "Generate the build command for gcobol."
+  (format "%s -o %s %s -dialect %s %s && %s"
+          ob-cobol-compiler-gcobol
+          tmp-binary
+          (format "-f%s-form" source-format)
+          dialect
+          ob-cobol-last-src-file
+          tmp-binary))
+
 (defun org-babel-execute:cobol (body params)
   "Execute BODY with COBOL code with org-babel.
 Accepted PARAMS:
@@ -159,12 +187,12 @@ This function is called by `org-babel-execute-src-block'."
     ;; compile file and return result
     (when-let ((results
                 (org-babel-eval
-                 (format "%s -%s -std=%s -x -o %s -j %s"
-                         ob-cobol-compiler
-                         source-format
-                         dialect
-                         tmp-binary
-                         ob-cobol-last-src-file)
+                 (cond ((equal ob-cobol-compiler 'cobc)
+                        (org-cobol--cobc-command source-format dialect tmp-binary))
+                       ((equal ob-cobol-compiler 'gcobol)
+                        (org-cobol--gcobol-command source-format dialect tmp-binary))
+                       (t
+                        (error "Unsupported compiler: %s" ob-cobol-compiler)))
                  "")))
       (org-babel-reassemble-table
        (if (or (member "table" (cdr (assoc :result-params processed-params)))
