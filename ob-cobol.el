@@ -153,13 +153,22 @@ Overwrite in code block with parameter `:dialect'."
           tmp-binary
           ob-cobol-last-src-file))
 
+(defun org-cobol--gcobol-translate-dialect (dialect)
+  "Translate the cobc dialects to names gcobol supports. This is more of a
+guestimate than an actual translation."
+  (cond ((string-equal dialect "default") "ibm")
+        ((member dialect '("ibm" "ibm-strict")) "ibm")
+        ((member dialect '("cobol2002" "cobol2014" "cobol85" "xopen")) "gnu")
+        ((member dialect '("mf" "mf-strict")) "mf")
+        (t (error "Unsupported dialect for gcobol: %s" dialect))))
+
 (defun org-cobol--gcobol-command (source-format dialect tmp-binary)
   "Generate the build command for gcobol."
   (format "%s -o %s %s -dialect %s %s && %s"
           ob-cobol-compiler-gcobol
           tmp-binary
           (format "-f%s-form" source-format)
-          dialect
+          (org-cobol--gcobol-translate-dialect dialect)
           ob-cobol-last-src-file
           tmp-binary))
 
