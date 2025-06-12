@@ -114,7 +114,8 @@ Overwrite in code block with parameter `:dialect'."
     ;; optionally add data and procedure divisions
     (unless (string-match-p "division\." wrapped)
       (setq wrapped
-            (if (string-match-p "…" wrapped)
+            (if (or (string-match-p "…" wrapped)
+                    (string-match-p "\.\.\." wrapped))
 
                 ;; split source code between data and procedure division
                 (apply 'format
@@ -125,7 +126,10 @@ Overwrite in code block with parameter `:dialect'."
 %1$sPROCEDURE DIVISION.
 %3$s"
                        source-indent
-                       (string-split wrapped "\n[ ]*…[ ]*\n"))
+                       (string-split wrapped
+                                     (format "\n[ ]*%s[ ]*\n"
+                                             (if (string-match-p "…" wrapped)
+                                                 "…" "..."))))
 
               ;; add everything to procedure division
               (format "%1$sPROCEDURE DIVISION.\n%2$s" source-indent wrapped))))
